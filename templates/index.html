@@ -1,3 +1,23 @@
 <h1>Example</h1>
 
 <p>Example Example</p>
+
+<p>{{ first_name }}</p>
+
+<p>{{stuff | safe}}</p>
+<p>{{stuff | striptags}}</p>
+<p>{{stuff1 | title}}</p>
+
+<h2>Fav Pizza</h2>
+
+<!-- for loop -->
+{% for topping in favorite_pizza %}
+    {% if topping == 32 %}
+        {{topping + 100}} <br>
+    {% else %}
+        {{ topping }} <br>
+    {% endif %}
+{% endfor %}
+
+<br><br>
+{{favorite_pizza.0}}

@@ -5,30 +5,31 @@ from werkzeug.security import generate_password_hash
 # Create a Flask Instance
 app = Flask(__name__)
 
+
+# FILTERS!!!
+
+# safe
+# capitalize
+# lower
+# upper
+# title
+# trim
+# striptags
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    first_name = 'John'
+    stuff = 'This is <strong>Bold</strong> Text'
+    stuff1 = 'this is Bold Text'
+
+    favorite_pizza = ["Pepperoni", "CHeese", "Something Else", 32]
+    return render_template('index.html', first_name = first_name, stuff = stuff, stuff1 = stuff1, favorite_pizza = favorite_pizza)
 
 @app.route('/user/<name>')
 def user(name):
-    return "<h1>Hello {}</h1>".format(name)
-# @app.route('/register', methods=['GET', 'POST'])
-# def register():
-#     if request.method == 'POST':
-#         username = request.form['username']
-#         password = request.form['password']
-#         hashed_password = generate_password_hash(password)
+    return render_template('user.html', name = name)
 
-#         db = get_db()
-#         cursor = db.cursor()
-#         cursor.execute('INSERT INTO users (username, password) VALUES (%s, %s)',
-#                        (username, hashed_password))
-#         db.commit()
-#         cursor.close()
-
-#         return 'User registered successfully!'
-#     return render_template('register.html')
-
+# Create Custom Error Pages
 if __name__ == "__main__":
     app.run(debug = True)
 

@@ -2,12 +2,12 @@ from flask import Flask, render_template, request, redirect
 from werkzeug.security import generate_password_hash
 # from db import get_db
 
-
+# Create a Flask Instance
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return "Hello World!"
+    return render_template('index.html')
 
 @app.route('/user/<name>')
 def user(name):

@@ -5,6 +5,7 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from flask_migrate import Migrate
 
 # Create a Flask Instance
 app = Flask(__name__)
@@ -21,6 +22,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://amir:password@localhost
 app.config['SECRET_KEY'] = "my super secret key"
 # Initialize The Database
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Create Model
 class Users(db.Model):
@@ -28,16 +30,65 @@ class Users(db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
-
+    favorite_color = db.Column(db.String(120))
     # Create a String
     def __repr__(self):
         return '<Name %r>' % self.name
 
+@app.route('/delete/<int:id>')
+def delete(id):
+    name = None
+    form = UserForm()
+    user_to_delete = Users.query.get_or_404(id)
+
+    try:
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        flash("User Deleted Successfully!")
+        our_users = Users.query.order_by(Users.date_added)
+        return render_template("add_user.html", 
+                            form=form,
+                            name=name,
+                            our_users=our_users)
+    except:
+        flash("Whoops! There was a problem deleting User")
+        our_users = Users.query.order_by(Users.date_added)
+        return render_template("add_user.html", 
+                            form=form,
+                            name=name,
+                            our_users=our_users)
 # Create a Form User
 class UserForm(FlaskForm):
     name = StringField("Name", validators = [DataRequired()])
     email = StringField("Email", validators = [DataRequired()])
+    favorite_color = StringField("Favorite Color")
     submit = SubmitField('Submit')
+
+# Update Database Record
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+def update(id):
+    form = UserForm()
+    name_to_update = Users.query.get_or_404(id)
+    if request.method == "POST":
+        name_to_update.name = request.form['name']
+        name_to_update.email = request.form['email']
+        name_to_update.favorite_color = request.form['favorite_color']
+        try:
+            db.session.commit()
+            flash("User Updated Successfully!")
+            return render_template("update.html",
+                                   form=form,
+                                   name_to_update=name_to_update)
+        except:
+            flash("Error! Looks like there is an error")
+            return render_template("update.html",
+                                   form=form,
+                                   name_to_update=name_to_update)
+    else:
+        return render_template("update.html",
+                               form=form,
+                               name_to_update=name_to_update,
+                               id=id)
 
 # Create a Form Class
 class NameForm(FlaskForm):
@@ -83,7 +134,6 @@ def name():
         form = form)
 
 # Create Custom Error Pages
-
 @app.route('/user/add', methods=['GET', 'POST'])
 def add_user():
     name = None
@@ -91,12 +141,13 @@ def add_user():
     if form.validate_on_submit():
         user = Users.query.filter_by(email=form.email.data).first()
         if user is None:
-            user = Users(name=form.name.data, email=form.email.data)
+            user = Users(name=form.name.data, email=form.email.data, favorite_color=form.favorite_color.data)
             db.session.add(user)
             db.session.commit()
         name = form.name.data
         form.name.data = ''
         form.email.data = ''
+        form.favorite_color.data = ''
         flash("User Added Succesfully!")
     our_users = Users.query.order_by(Users.date_added)
     return render_template("add_user.html", 
@@ -119,4 +170,3 @@ def page_not_found(e):
 
 if __name__ == "__main__":
     app.run(debug = True)
-
